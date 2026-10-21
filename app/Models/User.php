@@ -2,9 +2,12 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole;
+use App\Enums\UserStatus;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -14,6 +17,9 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property string $name
  * @property string $email
+ * @property UserRole $role
+ * @property UserStatus $status
+ * @property string|null $phone
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $two_factor_secret
@@ -23,7 +29,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password', 'role', 'status', 'phone'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -40,6 +46,66 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role' => UserRole::class,
+            'status' => UserStatus::class,
         ];
+    }
+
+    /**
+     * Check if user is an administrator.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === UserRole::Admin;
+    }
+
+    /**
+     * Check if user is a manager.
+     */
+    public function isManager(): bool
+    {
+        return $this->role === UserRole::Manager;
+    }
+
+    /**
+     * Check if user is staff.
+     */
+    public function isStaff(): bool
+    {
+        return $this->role === UserRole::Staff;
+    }
+
+    /**
+     * Check if user is a client.
+     */
+    public function isClient(): bool
+    {
+        return $this->role === UserRole::Client;
+    }
+
+    /**
+     * Check if user has permission to manage users.
+     */
+    public function canManageUsers(): bool
+    {
+        return $this->role?->canManageUsers() ?? false;
+    }
+
+    /**
+     * Check if user is active.
+     */
+    public function isActive(): bool
+    {
+        return $this->status === UserStatus::Active;
+    }
+
+    /**
+     * Scope query to only active users.
+     *
+     * @param  Builder<User>  $query
+     */
+    public function scopeActive(Builder $query): void
+    {
+        $query->where('status', UserStatus::Active->value);
     }
 }
