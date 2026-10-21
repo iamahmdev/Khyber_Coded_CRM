@@ -2,9 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Enums\UserRole;
+use App\Enums\UserStatus;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,11 +18,43 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Default Admin User
+        User::firstOrCreate(
+            ['email' => 'admin@khybercoded.com'],
+            [
+                'name' => 'Admin User',
+                'role' => UserRole::Admin,
+                'status' => UserStatus::Active,
+                'phone' => '+92 300 0000001',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+            ]
+        );
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // Sample Manager
+        User::firstOrCreate(
+            ['email' => 'manager@khybercoded.com'],
+            [
+                'name' => 'Manager User',
+                'role' => UserRole::Manager,
+                'status' => UserStatus::Active,
+                'phone' => '+92 300 0000002',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // Sample Staff
+        User::firstOrCreate(
+            ['email' => 'staff@khybercoded.com'],
+            [
+                'name' => 'Staff Member',
+                'role' => UserRole::Staff,
+                'status' => UserStatus::Active,
+                'phone' => '+92 300 0000003',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+            ]
+        );
     }
 }
