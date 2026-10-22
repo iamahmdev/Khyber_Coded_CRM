@@ -3,6 +3,7 @@
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DealController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -23,6 +24,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('contacts/{contact}', [ContactController::class, 'update'])->name('contacts.update');
     Route::delete('contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
     Route::post('contacts/{contact}/make-primary', [ContactController::class, 'makePrimary'])->name('contacts.make-primary');
+
+    Route::post('deals/{id}/restore', [DealController::class, 'restore'])->name('deals.restore');
+    Route::patch('deals/{deal}/stage', [DealController::class, 'updateStage'])->name('deals.stage');
+    Route::resource('deals', DealController::class);
 });
 
 require __DIR__.'/settings.php';

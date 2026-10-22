@@ -125,6 +125,16 @@ class Client extends Model
     }
 
     /**
+     * Sales pipeline deals associated with this client.
+     *
+     * @return HasMany<Deal, Client>
+     */
+    public function deals(): HasMany
+    {
+        return $this->hasMany(Deal::class, 'client_id');
+    }
+
+    /**
      * Check if client is active.
      */
     public function isActive(): bool

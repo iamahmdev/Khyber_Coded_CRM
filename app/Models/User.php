@@ -149,4 +149,24 @@ class User extends Authenticatable
     {
         return $this->hasMany(Client::class, 'created_by');
     }
+
+    /**
+     * The deals assigned to this user.
+     *
+     * @return HasMany<Deal, User>
+     */
+    public function assignedDeals(): HasMany
+    {
+        return $this->hasMany(Deal::class, 'assigned_to');
+    }
+
+    /**
+     * The deals created by this user.
+     *
+     * @return HasMany<Deal, User>
+     */
+    public function createdDeals(): HasMany
+    {
+        return $this->hasMany(Deal::class, 'created_by');
+    }
 }
