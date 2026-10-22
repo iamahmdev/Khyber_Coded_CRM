@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
@@ -106,6 +107,16 @@ class Lead extends Model
     public function convertedClient(): BelongsTo
     {
         return $this->belongsTo(Client::class, 'converted_to_client_id');
+    }
+
+    /**
+     * Sales pipeline deals originating from or linked to this lead.
+     *
+     * @return HasMany<Deal, Lead>
+     */
+    public function deals(): HasMany
+    {
+        return $this->hasMany(Deal::class, 'lead_id');
     }
 
     /**
