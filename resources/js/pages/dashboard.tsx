@@ -4,8 +4,10 @@ import {
     Calendar,
     CheckCircle2,
     Clock,
+    DollarSign,
     Shield,
     Sparkles,
+    Target,
     UserCheck,
     Users,
 } from 'lucide-react';
@@ -20,6 +22,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { dashboard } from '@/routes';
+import leadsRoute from '@/routes/leads';
 import usersRoute from '@/routes/users';
 import type { Auth, BreadcrumbItem } from '@/types';
 
@@ -40,6 +43,16 @@ interface RoleDistributionItem {
     role: string;
 }
 
+interface RecentLeadItem {
+    id: number;
+    name: string;
+    company: string | null;
+    status_label: string;
+    status_badge_class: string;
+    formatted_value: string | null;
+    created_at: string;
+}
+
 interface DashboardProps {
     metrics: {
         total_users: number;
@@ -53,6 +66,14 @@ interface DashboardProps {
     recentUsers: RecentUser[];
     roleDistribution: RoleDistributionItem[];
     canManageUsers: boolean;
+    canViewLeads?: boolean;
+    leadMetrics?: {
+        total: number;
+        pipeline_value: string;
+        qualified: number;
+        new_this_week: number;
+    } | null;
+    recentLeads?: RecentLeadItem[];
 }
 
 export default function Dashboard({
@@ -60,6 +81,9 @@ export default function Dashboard({
     recentUsers,
     roleDistribution,
     canManageUsers,
+    canViewLeads,
+    leadMetrics,
+    recentLeads,
 }: DashboardProps) {
     const { auth } = usePage<{ auth: Auth }>().props;
     const currentUser = auth.user;
@@ -272,6 +296,96 @@ export default function Dashboard({
                         </CardContent>
                     </Card>
 
+                    {/* Live Leads & Pipeline Card (Visible when authorized) */}
+                    {canViewLeads && leadMetrics && (
+                        <Card className="lg:col-span-2">
+                            <CardHeader className="flex flex-row items-center justify-between">
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <CardTitle className="text-base font-semibold">Leads & Sales Pipeline</CardTitle>
+                                        <Badge variant="outline" className="font-mono text-xs">
+                                            Module 5
+                                        </Badge>
+                                    </div>
+                                    <CardDescription>Live prospects and deal pipeline activity</CardDescription>
+                                </div>
+
+                                <Button asChild variant="ghost" size="sm" className="gap-1 text-xs">
+                                    <Link href={leadsRoute.index.url()}>
+                                        View All Leads
+                                        <ArrowRight className="size-3.5" />
+                                    </Link>
+                                </Button>
+                            </CardHeader>
+
+                            <CardContent className="space-y-6">
+                                {/* Lead KPI Mini-Grid */}
+                                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                                    <div className="rounded-lg border bg-muted/20 p-3">
+                                        <div className="text-xs text-muted-foreground font-medium">Total Leads</div>
+                                        <div className="text-xl font-bold text-foreground mt-0.5">{leadMetrics.total}</div>
+                                    </div>
+                                    <div className="rounded-lg border bg-muted/20 p-3">
+                                        <div className="text-xs text-muted-foreground font-medium">Pipeline Value</div>
+                                        <div className="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-0.5">
+                                            {leadMetrics.pipeline_value}
+                                        </div>
+                                    </div>
+                                    <div className="rounded-lg border bg-muted/20 p-3">
+                                        <div className="text-xs text-muted-foreground font-medium">Qualified</div>
+                                        <div className="text-xl font-bold text-foreground mt-0.5">{leadMetrics.qualified}</div>
+                                    </div>
+                                    <div className="rounded-lg border bg-muted/20 p-3">
+                                        <div className="text-xs text-muted-foreground font-medium">New This Week</div>
+                                        <div className="text-xl font-bold text-foreground mt-0.5">{leadMetrics.new_this_week}</div>
+                                    </div>
+                                </div>
+
+                                {/* Recent Leads Table */}
+                                {recentLeads && recentLeads.length > 0 && (
+                                    <div className="divide-y divide-border/60">
+                                        {recentLeads.map((l) => (
+                                            <div
+                                                key={l.id}
+                                                className="flex items-center justify-between py-3 first:pt-0 last:pb-0"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                                        <Target className="size-4" />
+                                                    </div>
+                                                    <div>
+                                                        <Link
+                                                            href={leadsRoute.show.url({ lead: l.id })}
+                                                            className="text-sm font-medium text-foreground hover:underline"
+                                                        >
+                                                            {l.name}
+                                                        </Link>
+                                                        <div className="text-xs text-muted-foreground">
+                                                            {l.company || 'Individual Contact'}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-3">
+                                                    {l.formatted_value && (
+                                                        <span className="font-mono text-xs font-medium text-foreground">
+                                                            {l.formatted_value}
+                                                        </span>
+                                                    )}
+                                                    <span
+                                                        className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${l.status_badge_class}`}
+                                                    >
+                                                        {l.status_label}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
+
                     {/* Right Column: Role Distribution & System Roadmap */}
                     <div className="flex flex-col gap-6">
                         {/* Role Distribution Card */}
@@ -350,8 +464,18 @@ export default function Dashboard({
 
                                 <div className="flex items-center justify-between text-xs">
                                     <span className="flex items-center gap-2 font-medium">
-                                        <Sparkles className="size-4 text-primary" />
+                                        <CheckCircle2 className="size-4 text-emerald-500" />
                                         M4: Dynamic CRM Dashboard
+                                    </span>
+                                    <Badge variant="outline" className="text-emerald-600 border-emerald-500/20 bg-emerald-500/10">
+                                        Active
+                                    </Badge>
+                                </div>
+
+                                <div className="flex items-center justify-between text-xs">
+                                    <span className="flex items-center gap-2 font-medium">
+                                        <CheckCircle2 className="size-4 text-emerald-500" />
+                                        M5: Leads Management
                                     </span>
                                     <Badge variant="default">
                                         Current
@@ -361,7 +485,7 @@ export default function Dashboard({
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span className="flex items-center gap-2 font-medium">
                                         <Clock className="size-4 text-muted-foreground" />
-                                        M5: Leads Management
+                                        M6: Clients & Contacts
                                     </span>
                                     <Badge variant="outline" className="text-muted-foreground">
                                         Next
