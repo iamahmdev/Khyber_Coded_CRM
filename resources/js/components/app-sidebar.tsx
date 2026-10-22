@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, Briefcase, FolderGit2, LayoutGrid, Target, TrendingUp, Users } from 'lucide-react';
+import { BookOpen, Briefcase, CalendarCheck, FolderGit2, LayoutGrid, Target, TrendingUp, Users } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -14,6 +14,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import activities from '@/routes/activities';
 import clients from '@/routes/clients';
 import deals from '@/routes/deals';
 import leads from '@/routes/leads';
@@ -40,6 +41,11 @@ const mainNavItems: NavItem[] = [
         title: 'Sales Pipeline',
         href: deals.index(),
         icon: TrendingUp,
+    },
+    {
+        title: 'Follow-ups & Activities',
+        href: activities.index(),
+        icon: CalendarCheck,
     },
     {
         title: 'Users & Roles',

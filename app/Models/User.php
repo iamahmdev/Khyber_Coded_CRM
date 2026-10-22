@@ -169,4 +169,24 @@ class User extends Authenticatable
     {
         return $this->hasMany(Deal::class, 'created_by');
     }
+
+    /**
+     * The follow-up activities assigned to this user.
+     *
+     * @return HasMany<Activity, User>
+     */
+    public function assignedActivities(): HasMany
+    {
+        return $this->hasMany(Activity::class, 'assigned_to');
+    }
+
+    /**
+     * The follow-up activities created by this user.
+     *
+     * @return HasMany<Activity, User>
+     */
+    public function createdActivities(): HasMany
+    {
+        return $this->hasMany(Activity::class, 'created_by');
+    }
 }
