@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ClientStatus;
 use App\Enums\LeadPriority;
 use App\Enums\LeadSource;
 use App\Enums\LeadStatus;
@@ -9,10 +10,13 @@ use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Http\Requests\StoreLeadRequest;
 use App\Http\Requests\UpdateLeadRequest;
+use App\Models\Client;
+use App\Models\Contact;
 use App\Models\Lead;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -409,20 +413,61 @@ class LeadController extends Controller
     }
 
     /**
-     * Convert qualified lead to client (Integration hook for Module 6).
+     * Convert qualified lead to client (Idempotent Module 6 integration).
      */
     public function convert(Request $request, Lead $lead): RedirectResponse
     {
         Gate::authorize('convert', $lead);
 
-        if ($lead->isConverted()) {
+        // If lead is already converted, navigate directly to existing client or back with error
+        if ($lead->isConverted() || $lead->converted_to_client_id) {
+            if ($lead->converted_to_client_id) {
+                $existingClient = Client::find($lead->converted_to_client_id);
+                if ($existingClient) {
+                    return redirect()->route('clients.show', $existingClient)
+                        ->with('error', 'This lead was already converted to this client record.');
+                }
+            }
+
             return redirect()->back()
                 ->with('error', 'This lead has already been converted.');
         }
 
-        $lead->markAsConverted();
+        // Idempotently create client and primary contact in transaction
+        $client = DB::transaction(function () use ($lead, $request) {
+            $client = Client::create([
+                'name' => $lead->company ?: $lead->name,
+                'email' => $lead->email,
+                'phone' => $lead->phone,
+                'status' => ClientStatus::Active,
+                'account_manager_id' => $lead->assigned_to,
+                'created_by' => $request->user()->id,
+                'source_lead_id' => $lead->id,
+                'notes' => "Converted from Lead #{$lead->id} ({$lead->name}) on ".now()->toFormattedDateString().($lead->notes ? "\n\nOriginal Lead Notes:\n".$lead->notes : ''),
+            ]);
 
-        return redirect()->back()
-            ->with('success', 'Lead successfully converted! Client record integration ready for Module 6.');
+            // Create primary contact from the lead's contact details
+            Contact::create([
+                'client_id' => $client->id,
+                'name' => $lead->name,
+                'email' => $lead->email,
+                'phone' => $lead->phone,
+                'title' => $lead->title,
+                'is_primary' => true,
+                'notes' => 'Primary contact created during lead conversion.',
+            ]);
+
+            // Update lead record with link to client
+            $lead->update([
+                'status' => LeadStatus::Converted,
+                'converted_at' => now(),
+                'converted_to_client_id' => $client->id,
+            ]);
+
+            return $client;
+        });
+
+        return redirect()->route('clients.show', $client)
+            ->with('success', 'Lead successfully converted to Client with primary contact person created!');
     }
 }

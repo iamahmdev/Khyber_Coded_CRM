@@ -129,4 +129,24 @@ class User extends Authenticatable
     {
         return $this->hasMany(Lead::class, 'created_by');
     }
+
+    /**
+     * The clients managed by this user as account manager.
+     *
+     * @return HasMany<Client, User>
+     */
+    public function managedClients(): HasMany
+    {
+        return $this->hasMany(Client::class, 'account_manager_id');
+    }
+
+    /**
+     * The clients created by this user.
+     *
+     * @return HasMany<Client, User>
+     */
+    public function createdClients(): HasMany
+    {
+        return $this->hasMany(Client::class, 'created_by');
+    }
 }

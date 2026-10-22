@@ -477,6 +477,16 @@ export default function Dashboard({
                                         <CheckCircle2 className="size-4 text-emerald-500" />
                                         M5: Leads Management
                                     </span>
+                                    <Badge variant="outline" className="text-emerald-600 border-emerald-500/20 bg-emerald-500/10">
+                                        Active
+                                    </Badge>
+                                </div>
+
+                                <div className="flex items-center justify-between text-xs">
+                                    <span className="flex items-center gap-2 font-medium">
+                                        <CheckCircle2 className="size-4 text-emerald-500" />
+                                        M6: Clients & Contacts
+                                    </span>
                                     <Badge variant="default">
                                         Current
                                     </Badge>
@@ -485,7 +495,7 @@ export default function Dashboard({
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span className="flex items-center gap-2 font-medium">
                                         <Clock className="size-4 text-muted-foreground" />
-                                        M6: Clients & Contacts
+                                        M7: Sales Pipeline
                                     </span>
                                     <Badge variant="outline" className="text-muted-foreground">
                                         Next
