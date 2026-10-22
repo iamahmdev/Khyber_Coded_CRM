@@ -99,6 +99,16 @@ class Lead extends Model
     }
 
     /**
+     * The client record created upon converting this lead.
+     *
+     * @return BelongsTo<Client, Lead>
+     */
+    public function convertedClient(): BelongsTo
+    {
+        return $this->belongsTo(Client::class, 'converted_to_client_id');
+    }
+
+    /**
      * Check if this lead has been converted to a client.
      */
     public function isConverted(): bool
