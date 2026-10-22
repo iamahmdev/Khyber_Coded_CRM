@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
@@ -28,6 +29,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('deals/{id}/restore', [DealController::class, 'restore'])->name('deals.restore');
     Route::patch('deals/{deal}/stage', [DealController::class, 'updateStage'])->name('deals.stage');
     Route::resource('deals', DealController::class);
+
+    Route::post('activities/{id}/restore', [ActivityController::class, 'restore'])->name('activities.restore');
+    Route::patch('activities/{activity}/complete', [ActivityController::class, 'complete'])->name('activities.complete');
+    Route::resource('activities', ActivityController::class);
 });
 
 require __DIR__.'/settings.php';

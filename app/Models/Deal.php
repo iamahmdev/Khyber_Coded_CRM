@@ -106,6 +106,14 @@ class Deal extends Model
     }
 
     /**
+     * Follow-up activities and communications logged for this deal.
+     */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(Activity::class, 'deal_id')->latest('due_at');
+    }
+
+    /**
      * Scope query to deals accessible by the given user.
      */
     public function scopeForUser(Builder $query, User $user): Builder

@@ -135,6 +135,16 @@ class Client extends Model
     }
 
     /**
+     * Follow-up activities and communications with this client.
+     *
+     * @return HasMany<Activity, Client>
+     */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(Activity::class, 'client_id')->latest('due_at');
+    }
+
+    /**
      * Check if client is active.
      */
     public function isActive(): bool

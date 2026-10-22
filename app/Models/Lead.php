@@ -120,6 +120,16 @@ class Lead extends Model
     }
 
     /**
+     * Follow-up activities and communications logged for this lead.
+     *
+     * @return HasMany<Activity, Lead>
+     */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(Activity::class, 'lead_id')->latest('due_at');
+    }
+
+    /**
      * Check if this lead has been converted to a client.
      */
     public function isConverted(): bool
