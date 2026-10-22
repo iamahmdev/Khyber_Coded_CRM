@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\LeadStatus;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
+use App\Models\Lead;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -80,11 +82,48 @@ class DashboardController extends Controller
             $roleDistribution = [];
         }
 
+        // Live leads overview for authorized team members
+        $canViewLeads = $user->can('viewAny', Lead::class);
+        $leadMetrics = null;
+        $recentLeads = [];
+
+        if ($canViewLeads) {
+            $leadsQuery = Lead::query()->forUser($user);
+            $totalLeads = (clone $leadsQuery)->count();
+            $pipelineVal = (clone $leadsQuery)
+                ->whereNotIn('status', [LeadStatus::Converted->value, LeadStatus::Lost->value, LeadStatus::Unqualified->value])
+                ->sum('estimated_value');
+
+            $leadMetrics = [
+                'total' => $totalLeads,
+                'pipeline_value' => '$'.number_format((float) $pipelineVal, 2),
+                'qualified' => (clone $leadsQuery)->where('status', LeadStatus::Qualified->value)->count(),
+                'new_this_week' => (clone $leadsQuery)->where('created_at', '>=', now()->startOfWeek())->count(),
+            ];
+
+            $recentLeads = (clone $leadsQuery)
+                ->latest()
+                ->take(4)
+                ->get()
+                ->map(fn (Lead $l) => [
+                    'id' => $l->id,
+                    'name' => $l->name,
+                    'company' => $l->company,
+                    'status_label' => $l->status->label(),
+                    'status_badge_class' => $l->status->badgeClass(),
+                    'formatted_value' => $l->estimated_value !== null ? '$'.number_format((float) $l->estimated_value, 2) : null,
+                    'created_at' => $l->created_at?->diffForHumans() ?? 'Recently',
+                ]);
+        }
+
         return Inertia::render('dashboard', [
             'metrics' => $metrics,
             'recentUsers' => $recentUsers,
             'roleDistribution' => $roleDistribution,
             'canManageUsers' => $user->canManageUsers(),
+            'canViewLeads' => $canViewLeads,
+            'leadMetrics' => $leadMetrics,
+            'recentLeads' => $recentLeads,
         ]);
     }
 }
